@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK 2-3 轻松闯关：工作、旅游与节日</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .bounce-in {
+            animation: bounceIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+    </style>
+
+    <script>
+        // Web Audio API for sound effects
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(146.83, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                }
+            } catch(e) {}
+        }
+
+        /* 
+           HSK 2-3 Question Bank without Pinyin
+        */
+        const questionsData = [
+            // ==================== VÒNG 1: Từ vựng cơ bản ====================
+            {
+                id: 1,
+                round: 1,
+                levelName: "Vòng 1: Từ vựng cơ bản",
+                typeTag: "Nhận biết từ vựng",
+                stem: "Từ nào dưới đây có nghĩa là <b>'Đi du lịch'</b>?<br><span class=\"text-xs text-slate-400\">(Chọn từ đúng)</span>",
+                options: [
+                    { key: "A", text: "旅游" },
+                    { key: "B", text: "工作" },
+                    { key: "C", text: "学习" },
+                    { key: "D", text: "睡觉" }
+                ],
+                correctKey: "A",
+                targetWord: "旅游 - Đi du lịch",
+                explanation: "<b>旅游</b> nghĩa là đi du lịch.<br>• 工作: Làm việc | 学习: Học tập | 睡觉: Đi ngủ."
+            },
+            {
+                id: 2,
+                round: 1,
+                levelName: "Vòng 1: Từ vựng cơ bản",
+                typeTag: "Nhận biết từ vựng",
+                stem: "Từ <b>公司</b> trong tiếng Việt có nghĩa là gì?",
+                options: [
+                    { key: "A", text: "Bệnh viện" },
+                    { key: "B", text: "Công ty" },
+                    { key: "C", text: "Trường học" },
+                    { key: "D", text: "Nhà hàng" }
+                ],
+                correctKey: "B",
+                targetWord: "公司 - Công ty",
+                explanation: "<b>公司</b> nghĩa là Công ty.<br>• Bệnh viện: 医院 | Trường học: 学校 | Nhà hàng: 饭馆."
+            },
+            {
+                id: 3,
+                round: 1,
+                levelName: "Vòng 1: Từ vựng cơ bản",
+                typeTag: "Ngày lễ & Tết",
+                stem: "<b>春节</b> là ngày lễ truyền thống nào?",
+                options: [
+                    { key: "A", text: "Tết Trung Thu" },
+                    { key: "B", text: "Tết Nguyên Đán (Tết Âm Lịch)" },
+                    { key: "C", text: "Tết Đoan Ngọ" },
+                    { key: "D", text: "Giáng Sinh" }
+                ],
+                correctKey: "B",
+                targetWord: "春节 - Tết Nguyên Đán",
+                explanation: "<b>春节</b> chính là Tết Nguyên Đán (Tết Âm Lịch)."
+            },
+
+            // ==================== VÒNG 2: Điền từ ====================
+            {
+                id: 4,
+                round: 2,
+                levelName: "Vòng 2: Điền từ vào chỗ trống",
+                typeTag: "Chủ đề Công việc",
+                stem: "我每天早上八点去______。<br><span class=\"text-xs text-amber-300\">(Tôi đi làm lúc 8 giờ sáng)</span>",
+                options: [
+                    { key: "A", text: "上班" },
+                    { key: "B", text: "买东西" },
+                    { key: "C", text: "游泳" },
+                    { key: "D", text: "跳舞" }
+                ],
+                correctKey: "A",
+                targetWord: "去上班 - Đi làm",
+                explanation: "Cụm <b>去上班</b> có nghĩa là đi làm."
+            },
+            {
+                id: 5,
+                round: 2,
+                levelName: "Vòng 2: Điền từ vào chỗ trống",
+                typeTag: "Chủ đề Du lịch",
+                stem: "这里的地方很美丽，我很______去这里旅游。<br><span class=\"text-xs text-amber-300\">(Nơi này rất đẹp, tôi rất muốn đến đây du lịch)</span>",
+                options: [
+                    { key: "A", text: "想" },
+                    { key: "B", text: "贵" },
+                    { key: "C", text: "慢" },
+                    { key: "D", text: "冷" }
+                ],
+                correctKey: "A",
+                targetWord: "想 - Muốn",
+                explanation: "Dùng <b>想</b> thể hiện mong muốn: 很想去... (Rất muốn đi...)."
+            },
+            {
+                id: 6,
+                round: 2,
+                levelName: "Vòng 2: Điền từ vào chỗ trống",
+                typeTag: "Chủ đề Ngày Tết",
+                stem: "过年的时候，大人会给孩子们发______。<br><span class=\"text-xs text-amber-300\">(Mỗi khi Tết đến, người lớn sẽ phát lì xì cho trẻ em)</span>",
+                options: [
+                    { key: "A", text: "红包" },
+                    { key: "B", text: "药" },
+                    { key: "C", text: "水" },
+                    { key: "D", text: "车票" }
+                ],
+                correctKey: "A",
+                targetWord: "发红包 - Phát lì xì",
+                explanation: "Ngày Tết người lớn mừng tuổi cho trẻ em bằng cách <b>发红包</b> (Phát lì xì)."
+            },
+
+            // ==================== VÒNG 3: Hội thoại ====================
+            {
+                id: 7,
+                round: 3,
+                levelName: "Vòng 3: Hội thoại giao tiếp",
+                typeTag: "Hỏi đáp ngày nghỉ",
+                stem: "A: 明天放假，你想去哪里？<br>B: ______。<br><span class=\"text-xs text-amber-300\">A: Ngày mai nghỉ, bạn muốn đi đâu?</span>",
+                options: [
+                    { key: "A", text: "我想去北京旅游。" },
+                    { key: "B", text: "我很喜欢吃苹果。" },
+                    { key: "C", text: "我是三十岁。" },
+                    { key: "D", text: "今天天气很好。" }
+                ],
+                correctKey: "A",
+                targetWord: "去 + 地点 + 旅游",
+                explanation: "Hỏi '想去哪里' (muốn đi đâu) trả lời địa điểm: <b>我想去北京旅游</b> (Tôi muốn đi Bắc Kinh du lịch)."
+            },
+            {
+                id: 8,
+                round: 3,
+                levelName: "Vòng 3: Hội thoại giao tiếp",
+                typeTag: "Chúc Tết",
+                stem: "春节到了，见到朋友时应该说什么？<br><span class=\"text-xs text-amber-300\">(Dịp Tết đến, gặp bạn bè nên chúc câu gì?)</span>",
+                options: [
+                    { key: "A", text: "新年快乐！" },
+                    { key: "B", text: "晚安！" },
+                    { key: "C", text: "不客气！" },
+                    { key: "D", text: "对不起！" }
+                ],
+                correctKey: "A",
+                targetWord: "新年快乐 - Chúc mừng năm mới",
+                explanation: "Dịp Tết câu chúc phổ biến nhất là <b>新年快乐！</b> - Chúc mừng năm mới!"
+            }
+        ];
+
+        let currentQIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let userAnswers = [];
+
+        window.startGame = function() {
+            document.getElementById("start-screen").classList.add("hidden");
+            document.getElementById("game-header").classList.remove("hidden");
+            document.getElementById("progress-container").classList.remove("hidden");
+            document.getElementById("question-screen").classList.remove("hidden");
+            
+            currentQIndex = 0;
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            userAnswers = [];
+            
+            document.getElementById("total-q-num").innerText = questionsData.length;
+            loadQuestion();
+        };
+
+        function updateHeader() {
+            document.getElementById("score-display").innerText = score;
+            document.getElementById("streak-count").innerText = streak;
+            document.getElementById("current-q-num").innerText = currentQIndex + 1;
+            
+            const q = questionsData[currentQIndex];
+            document.getElementById("level-badge").innerText = q.levelName;
+            
+            const percent = ((currentQIndex + 1) / questionsData.length) * 100;
+            document.getElementById("progress-bar").style.width = `${percent}%`;
+        }
+
+        function loadQuestion() {
+            const q = questionsData[currentQIndex];
+            
+            document.getElementById("feedback-card").classList.add("hidden");
+            document.getElementById("next-btn").classList.add("hidden");
+            
+            document.getElementById("question-type-tag").innerText = q.typeTag;
+            document.getElementById("question-text").innerHTML = q.stem;
+
+            const optContainer = document.getElementById("options-container");
+            optContainer.innerHTML = "";
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement("button");
+                btn.className = "btn-option w-full p-3.5 sm:p-4 bg-slate-800/90 hover:bg-teal-900/40 border border-slate-700 hover:border-teal-400 rounded-2xl text-left font-semibold text-slate-100 flex items-center justify-between text-sm sm:text-base cursor-pointer transition-all";
+                btn.innerHTML = `<span><strong class="text-amber-400 mr-2">${opt.key}.</strong> ${opt.text}</span> <span class="text-xs text-teal-400/80 bg-teal-950/60 px-2 py-1 rounded-lg">Chọn</span>`;
+                btn.onclick = () => checkAnswer(opt.key, q);
+                optContainer.appendChild(btn);
+            });
+
+            updateHeader();
+        }
+
+        function checkAnswer(selectedKey, question) {
+            const btns = document.querySelectorAll(".btn-option");
+            btns.forEach(b => {
+                b.disabled = true;
+                b.classList.add("opacity-60", "cursor-not-allowed");
+            });
+
+            const isCorrect = selectedKey === question.correctKey;
+            
+            userAnswers.push({
+                question: question,
+                selectedKey: selectedKey,
+                isCorrect: isCorrect
+            });
+
+            const fbCard = document.getElementById("feedback-card");
+            const fbIcon = document.getElementById("feedback-icon");
+            const fbTitle = document.getElementById("feedback-title");
+            const fbDetail = document.getElementById("feedback-detail");
+            const fbExpl = document.getElementById("feedback-explanation");
+
+            fbCard.classList.remove("hidden");
+
+            if (isCorrect) {
+                playSound('correct');
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+                const bonus = (streak > 1) ? (streak - 1) * 2 : 0;
+                const pointsGained = 10 + bonus;
+                score += pointsGained;
+
+                fbCard.className = "p-4 rounded-2xl mb-5 transition-all border bg-emerald-950/70 border-emerald-500/60 text-emerald-200 bounce-in";
+                fbIcon.innerText = "🎉";
+                fbTitle.innerText = `Đúng rồi! Cực giỏi! (+${pointsGained} điểm)`;
+                
+                const correctOpt = question.options.find(o => o.key === question.correctKey);
+                fbDetail.innerText = `Đáp án: ${correctOpt.key}. ${correctOpt.text}`;
+            } else {
+                playSound('wrong');
+                streak = 0;
+                fbCard.className = "p-4 rounded-2xl mb-5 transition-all border bg-rose-950/70 border-rose-500/60 text-rose-200 shake";
+                fbIcon.innerText = "❌";
+                fbTitle.innerText = "Tiếc quá, thử lại câu sau nhé!";
+                const correctOpt = question.options.find(o => o.key === question.correctKey);
+                fbDetail.innerText = `Đáp án chính xác là: ${correctOpt.key}. ${correctOpt.text}`;
+            }
+
+            fbExpl.innerHTML = `💡 <b>Giải thích:</b> ${question.explanation}`;
+
+            document.getElementById("score-display").innerText = score;
+            document.getElementById("streak-count").innerText = streak;
+            document.getElementById("next-btn").classList.remove("hidden");
+        }
+
+        window.nextQuestion = function() {
+            currentQIndex++;
+            if (currentQIndex < questionsData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            document.getElementById("question-screen").classList.add("hidden");
+            document.getElementById("game-header").classList.add("hidden");
+            document.getElementById("progress-container").classList.add("hidden");
+            document.getElementById("result-screen").classList.remove("hidden");
+
+            const correctCount = userAnswers.filter(a => a.isCorrect).length;
+            const totalCount = questionsData.length;
+            const accuracy = Math.round((correctCount / totalCount) * 100);
+
+            document.getElementById("res-score").innerText = score;
+            document.getElementById("res-correct").innerText = `${correctCount}/${totalCount}`;
+            document.getElementById("res-accuracy").innerText = `${accuracy}%`;
+            document.getElementById("res-max-streak").innerText = maxStreak;
+
+            if (accuracy >= 70 && typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+
+            const rTitle = document.getElementById("result-title");
+            const rEmoji = document.getElementById("result-emoji");
+            if (accuracy === 100) {
+                rEmoji.innerText = "👑";
+                rTitle.innerText = "Xuất Sắc! Bậc Thầy HSK 2-3!";
+            } else if (accuracy >= 70) {
+                rEmoji.innerText = "🌟";
+                rTitle.innerText = "Làm Tốt Tốt Lắm!";
+            } else {
+                rEmoji.innerText = "💪";
+                rTitle.innerText = "Cố Gắng Luyện Thêm Nhé!";
+            }
+
+            const wrongList = document.getElementById("wrong-answers-list");
+            wrongList.innerHTML = "";
+
+            const wrongAnswers = userAnswers.filter(a => !a.isCorrect);
+
+            if (wrongAnswers.length === 0) {
+                wrongList.innerHTML = `
+                    <div class="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-emerald-300 font-medium text-xs">
+                        🌟 Bạn đã làm đúng 100% tất cả các câu hỏi!
+                    </div>`;
+            } else {
+                wrongAnswers.forEach(item => {
+                    const el = document.createElement("div");
+                    el.className = "p-3 bg-slate-800/90 rounded-xl border border-rose-500/30 text-xs";
+                    const correctOpt = item.question.options.find(o => o.key === item.question.correctKey);
+                    
+                    el.innerHTML = `
+                        <div class="font-bold text-rose-300 mb-0.5">Nội dung: ${item.question.targetWord}</div>
+                        <div class="text-slate-300 mb-1">Đáp án đúng: <b class="text-emerald-400">${correctOpt.key}. ${correctOpt.text}</b></div>
+                        <div class="text-teal-300 bg-black/30 p-2 rounded-lg">💡 ${item.question.explanation}</div>
+                    `;
+                    wrongList.appendChild(el);
+                });
+            }
+        }
+
+        window.resetGame = function() {
+            document.getElementById("result-screen").classList.add("hidden");
+            document.getElementById("start-screen").classList.remove("hidden");
+        };
+    </script>
+</head>
+<body class="min-h-screen flex items-center justify-center p-3 sm:p-6 bg-slate-950 text-slate-100">
+
+    <div class="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-4 sm:p-6 relative overflow-hidden">
+        
+        <!-- HEADER STATS -->
+        <div id="game-header" class="hidden mb-4 flex items-center justify-between bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">🏆</span>
+                <div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Điểm số</div>
+                    <div id="score-display" class="text-lg font-black text-amber-400">0</div>
+                </div>
+            </div>
+            <div id="level-badge" class="px-3 py-1 bg-teal-500/20 border border-teal-500/40 text-teal-300 text-xs font-bold rounded-full">
+                Vòng 1
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">⚡</span>
+                <div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Chuỗi đúng</div>
+                    <div id="streak-count" class="text-lg font-black text-orange-400">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div id="progress-container" class="hidden mb-5">
+            <div class="flex justify-between text-xs text-slate-400 font-medium mb-1">
+                <span>Tiến trình</span>
+                <span>Câu <span id="current-q-num">1</span>/<span id="total-q-num">8</span></span>
+            </div>
+            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
+                <div id="progress-bar" class="bg-gradient-to-r from-teal-400 to-indigo-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <!-- START SCREEN -->
+        <div id="start-screen" class="text-center py-8">
+            <div class="text-5xl mb-4">🐉</div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-amber-300 to-indigo-400 mb-2">
+                HSK 2-3 轻松闯关
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 mb-6 max-w-sm mx-auto">
+                Luyện tập từ vựng & hội thoại cơ bản về <b>Công việc, Du lịch và Tết Nguyên Đán</b> (Nhận diện thuần chữ Hán)!
+            </p>
+            <button onclick="startGame()" class="px-8 py-3.5 bg-gradient-to-r from-teal-500 to-indigo-600 text-white font-extrabold rounded-2xl text-base hover:brightness-110 transition shadow-lg active:scale-95 cursor-pointer">
+                🎮 Bắt Đầu Chơi Ngay
+            </button>
+        </div>
+
+        <!-- QUESTION SCREEN -->
+        <div id="question-screen" class="hidden">
+            <div class="mb-4">
+                <span id="question-type-tag" class="inline-block px-2.5 py-1 text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 rounded-lg border border-indigo-500/30 mb-2">
+                    Từ vựng
+                </span>
+                <div id="question-text" class="text-base sm:text-lg font-bold text-slate-100 leading-snug">
+                    <!-- Dynamic Question content -->
+                </div>
+            </div>
+
+            <!-- OPTIONS CONTAINER -->
+            <div id="options-container" class="space-y-2.5 mb-5">
+                <!-- Options buttons injected here -->
+            </div>
+
+            <!-- FEEDBACK CARD -->
+            <div id="feedback-card" class="hidden p-4 rounded-2xl mb-5 transition-all">
+                <div class="flex items-center space-x-2 font-bold mb-1">
+                    <span id="feedback-icon" class="text-xl"></span>
+                    <span id="feedback-title" class="text-sm"></span>
+                </div>
+                <div id="feedback-detail" class="text-xs opacity-90 font-medium mb-2"></div>
+                <div id="feedback-explanation" class="text-xs bg-black/20 p-2.5 rounded-xl border border-white/10"></div>
+            </div>
+
+            <!-- NEXT BUTTON -->
+            <button id="next-btn" onclick="nextQuestion()" class="hidden w-full py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold rounded-2xl text-sm transition shadow-lg active:scale-95 cursor-pointer">
+                Câu Tiếp Theo ➔
+            </button>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div id="result-screen" class="hidden text-center py-6">
+            <div id="result-emoji" class="text-5xl mb-2">🌟</div>
+            <h2 id="result-title" class="text-xl font-bold text-slate-100 mb-4">Làm Tốt Tốt Lắm!</h2>
+
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                    <div class="text-[10px] text-slate-400">TỔNG ĐIỂM</div>
+                    <div id="res-score" class="text-xl font-black text-amber-400">0</div>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                    <div class="text-[10px] text-slate-400">SỐ CÂU ĐÚNG</div>
+                    <div id="res-correct" class="text-xl font-black text-emerald-400">0/0</div>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                    <div class="text-[10px] text-slate-400">TỶ LỆ CHÍNH XÁC</div>
+                    <div id="res-accuracy" class="text-xl font-black text-teal-300">0%</div>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                    <div class="text-[10px] text-slate-400">CHUỖI TỐT NHẤT</div>
+                    <div id="res-max-streak" class="text-xl font-black text-orange-400">0</div>
+                </div>
+            </div>
+
+            <!-- REVIEW WRONG ANSWERS -->
+            <div class="text-left mb-6">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Chi tiết kiến thức ôn tập:</h3>
+                <div id="wrong-answers-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <!-- Dynamic review items -->
+                </div>
+            </div>
+
+            <button onclick="resetGame()" class="px-8 py-3.5 bg-gradient-to-r from-teal-500 via-amber-500 to-indigo-600 text-white font-extrabold rounded-xl hover:brightness-110 transition shadow-lg active:scale-95 text-sm cursor-pointer">
+                🔄 Chơi Lại Từ Đầu
+            </button>
+        </div>
+
+    </div>
+
+</body>
+</html>
